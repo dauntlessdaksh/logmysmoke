@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "193947097209",
+    "project_id": "quitsmoke-dac38",
+    "storage_bucket": "quitsmoke-dac38.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:193947097209:android:ed08c29435f50d17541ca8",
+        "android_client_info": {
+          "package_name": "com.example.quitsmoking"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "193947097209-ksh6km180ovta34f0dg13b7ov49i1uab.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7uyXC1lE5ETz9FCtkfj4m6oP6Pih6A8k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "193947097209-ksh6km180ovta34f0dg13b7ov49i1uab.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

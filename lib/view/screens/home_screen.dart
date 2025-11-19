@@ -1,276 +1,291 @@
+// lib/view/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:quitsmoking/core/theme/app_colors.dart';
 import 'package:quitsmoking/viewmodel/auth/auth_bloc.dart';
-import 'package:quitsmoking/viewmodel/auth/auth_event.dart';
 import 'package:quitsmoking/viewmodel/auth/auth_state.dart';
-import 'package:quitsmoking/core/widgets/neon_loader.dart';
+import 'package:quitsmoking/viewmodel/home/home_bloc.dart';
+import 'package:quitsmoking/viewmodel/home/home_event.dart';
+import 'package:quitsmoking/viewmodel/home/home_state.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  int _navIndex(String loc) {
-    if (loc.startsWith('/progress')) return 1;
-    if (loc.startsWith('/logs')) return 2;
-    if (loc.startsWith('/notifications')) return 3;
-    return 0;
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final HomeBloc _homeBloc;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // HomeBloc should be provided by the route with BlocProvider.
+    _homeBloc = context.read<HomeBloc>();
+
+    // get auth user uid and ask HomeBloc to start listening
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      _homeBloc.add(HomeStartListening(authState.user.uid));
+    } else {
+      // If not authenticated for some reason, you might want to redirect
+      // to login: context.go('/login');
+    }
+  }
+
+  @override
+  void dispose() {
+    // HomeBloc is provided by BlocProvider above the screen; do NOT close it here.
+    super.dispose();
+  }
+
+  String _format(Duration d) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    final hours = d.inHours;
+    final minutes = d.inMinutes % 60;
+    final seconds = d.inSeconds % 60;
+    if (hours > 0) {
+      return "${two(hours)}:${two(minutes)}:${two(seconds)}";
+    } else {
+      return "${two(minutes)}:${two(seconds)}";
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AuthBloc>().state;
-    String name = 'User';
-    if (state is AuthAuthenticated) name = state.user.displayName ?? 'User';
-
-    final loc = GoRouterState.of(context).uri.toString();
-    final idx = _navIndex(loc);
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    "Today's record",
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formattedToday(),
+                    style: const TextStyle(fontSize: 22, color: Colors.white54),
+                  ),
+                  const SizedBox(height: 20),
+
+                  _label("Since last smoking"),
+                  Text(
+                    _format(state.sinceLast),
+                    style: const TextStyle(
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                  _label("Longest smoking cessation time"),
+                  Text(
+                    _format(state.longestCessation),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'logmysmoke',
-                        style: TextStyle(
-                          color: AppColors.logoPrimary,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      _statCard(
+                        "Money Spent",
+                        "₹${state.moneySpent.toStringAsFixed(2)}",
                       ),
-                      Text(
-                        '.',
-                        style: TextStyle(
-                          color: AppColors.logoDot,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      _statCard(
+                        "Money Saved (today)",
+                        "₹${state.moneySaved.toStringAsFixed(2)}",
                       ),
+                      _statCard("Cigs Today", "${state.todayCount}"),
                     ],
                   ),
+
                   const Spacer(),
-                  GestureDetector(
-                    onTap: () =>
-                        context.read<AuthBloc>().add(SignOutRequested()),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.redAccent.withOpacity(0.6),
-                          width: 1.2,
-                        ),
-                        color: Colors.red.withOpacity(0.12),
-                      ),
-                      child: Row(
-                        children: const [
-                          Icon(Icons.logout, color: Colors.redAccent, size: 18),
-                          SizedBox(width: 6),
-                          Text(
-                            'Logout',
-                            style: TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 14,
+
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        final authState = context.read<AuthBloc>().state;
+                        if (authState is! AuthAuthenticated) {
+                          // Not authenticated — send to login
+                          context.go('/login');
+                          return;
+                        }
+
+                        // compute cost per cigarette from UserModel
+                        final user = authState.user;
+                        final pack = user.cigarettesPerPack ?? 1;
+                        final costPerCig = (user.packCost ?? 0.0) / pack;
+
+                        // dispatch add log
+                        context.read<HomeBloc>().add(
+                          HomeAddSmokeLog(costPerCig),
+                        );
+                      },
+                      child: Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          color: AppColors.neonPink,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.neonPink.withOpacity(0.28),
+                              blurRadius: 18,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.add, size: 48, color: Colors.white),
+                        ),
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Hello, $name',
-              style: const TextStyle(
-                color: AppColors.softWhite,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'NON-SMOKER FOR',
-              style: TextStyle(
-                color: AppColors.neonPink,
-                fontSize: 14,
-                letterSpacing: 1.4,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                _TimeUnit(value: '0', label: 'Years'),
-                _TimeUnit(value: '0', label: 'Months'),
-                _TimeUnit(value: '3', label: 'Days'),
-                _TimeUnit(value: '5', label: 'Hours'),
-                _TimeUnit(value: '40', label: 'Minutes'),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: GridView.count(
-                padding: const EdgeInsets.all(16),
-                crossAxisCount: 2,
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 14,
-                children: const [
-                  DashboardCard(
-                    title: "Today's Expenses",
-                    value: "₹50",
-                    color: AppColors.neonOrange,
-                  ),
-                  DashboardCard(
-                    title: "Money Saved",
-                    value: "₹162",
-                    color: AppColors.neonBlue,
-                  ),
-                  DashboardCard(
-                    title: "Non-Smoked Cigs",
-                    value: "16",
-                    color: AppColors.neonGreen,
-                  ),
-                  DashboardCard(
-                    title: "Life Gained (hrs)",
-                    value: "5",
-                    color: AppColors.neonPink,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _bottomNav(context, idx),
+          ),
+
+          bottomNavigationBar: _bottomNav(context),
+        );
+      },
     );
   }
 
-  Widget _bottomNav(BuildContext ctx, int i) => Container(
-    height: 70,
-    decoration: const BoxDecoration(color: AppColors.background),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _navItem(ctx, Icons.home, i == 0, AppColors.neonOrange, '/home'),
-        _navItem(
-          ctx,
-          Icons.show_chart,
-          i == 1,
-          AppColors.neonGreen,
-          '/progress',
-        ),
-        _navItem(ctx, Icons.list, i == 2, AppColors.neonBlue, '/logs'),
-        _navItem(
-          ctx,
-          Icons.notifications,
-          i == 3,
-          AppColors.neonPink,
-          '/notifications',
-        ),
-      ],
-    ),
-  );
+  Widget _label(String text) {
+    return Text(
+      text,
+      style: const TextStyle(fontSize: 18, color: Colors.white54),
+    );
+  }
 
-  Widget _navItem(
-    BuildContext ctx,
-    IconData icon,
-    bool active,
-    Color c,
-    String route,
-  ) => GestureDetector(
-    onTap: () => ctx.go(route),
-    child: Container(
-      padding: const EdgeInsets.all(12),
+  Widget _statCard(String title, String value) {
+    return Container(
+      width: 110,
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: active ? c.withOpacity(0.22) : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surfaceDark,
+        borderRadius: BorderRadius.circular(14),
       ),
-      child: Icon(icon, color: active ? c : AppColors.softWhite, size: 24),
-    ),
-  );
-}
-
-class _TimeUnit extends StatelessWidget {
-  final String value;
-  final String label;
-  const _TimeUnit({required this.value, required this.label});
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 6),
-    child: Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: AppColors.softWhite,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: AppColors.greyText, fontSize: 12),
-        ),
-      ],
-    ),
-  );
-}
+          const SizedBox(height: 6),
+          Text(title, style: const TextStyle(color: Colors.white60)),
+        ],
+      ),
+    );
+  }
 
-class DashboardCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final Color color;
-  const DashboardCard({
-    required this.title,
-    required this.value,
-    required this.color,
-    super.key,
-  });
-  @override
-  Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(
+  Widget _bottomNavigationBarItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String route,
+    bool active, {
+    bool usePush = false,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        if (usePush) {
+          context.push(route); // ✅ Settings opens with push()
+        } else {
+          context.go(route); // default tab navigation
+        }
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: active ? Colors.redAccent : Colors.white54),
+          Text(
+            label,
+            style: TextStyle(color: active ? Colors.redAccent : Colors.white54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bottomNav(BuildContext context) {
+    return Container(
+      height: 70,
       color: AppColors.surfaceDark,
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: color.withOpacity(0.35),
-          blurRadius: 18,
-          spreadRadius: 0.5,
-        ),
-      ],
-    ),
-    padding: const EdgeInsets.all(20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _bottomNavigationBarItem(context, Icons.home, "Home", "/home", true),
+          _bottomNavigationBarItem(
+            context,
+            Icons.history,
+            "History",
+            "/history",
+            GoRouter.of(context).routerDelegate.currentConfiguration.fullPath ==
+                "/history",
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          style: const TextStyle(color: AppColors.greyText, fontSize: 13),
-        ),
-      ],
-    ),
-  );
+          _bottomNavigationBarItem(
+            context,
+            Icons.settings,
+            "Settings",
+            "/settings",
+            GoRouter.of(context).routerDelegate.currentConfiguration.fullPath ==
+                "/settings",
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formattedToday() {
+    final now = DateTime.now();
+    return "${now.day} ${_month(now.month)} ${now.year}";
+  }
+
+  String _month(int m) {
+    const names = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return names[m - 1];
+  }
 }

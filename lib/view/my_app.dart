@@ -1,16 +1,22 @@
-// Contains app initialization and provides AuthBloc
+// lib/view/my_app.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:quitsmoking/core/router/router.dart';
+
 import 'package:quitsmoking/data/services/firebase_auth_service.dart';
+import 'package:quitsmoking/data/repositories/auth_repository.dart';
+import 'package:quitsmoking/data/repositories/smoke_log_repository.dart';
 
 import 'package:quitsmoking/viewmodel/auth/auth_bloc.dart';
-import 'package:quitsmoking/data/repositories/auth_repository.dart';
-
 import 'package:quitsmoking/viewmodel/auth/auth_event.dart';
+
+import 'package:quitsmoking/viewmodel/home/home_bloc.dart';
+import 'package:quitsmoking/viewmodel/history/history_bloc.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -21,7 +27,11 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final AuthBloc _authBloc;
+  late final HomeBloc _homeBloc;
+  late final HistoryBloc _historyBloc;
+
   bool _initialized = false;
+  bool _started = false; // ensures AppStarted only runs once
 
   @override
   void initState() {
@@ -30,7 +40,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _initDependencies() async {
-    // create the repo with real Firebase instances
+    // ----------------------------
+    // AUTHENTICATION SYSTEM
+    // ----------------------------
     final authRepo = FirebaseAuthRepository(
       googleSignIn: GoogleSignIn.standard(),
       firebaseAuth: fb.FirebaseAuth.instance,
@@ -39,14 +51,29 @@ class _MyAppState extends State<MyApp> {
 
     _authBloc = AuthBloc(authRepository: authRepo);
 
-    setState(() => _initialized = true);
+    // ----------------------------
+    // SMOKE LOG SYSTEM (Shared repo)
+    // ----------------------------
+    final smokeRepo = SmokeLogRepository(firestore: FirebaseFirestore.instance);
 
-    // dispatch AppStarted after bloc has been provided in tree (done in build)
+    // HomeBloc — dynamic expectedCostPerCig & expectedDailyIntake
+    _homeBloc = HomeBloc(
+      repo: smokeRepo,
+      expectedCostPerCig: 0,
+      expectedDailyIntake: 0,
+    );
+
+    // HistoryBloc — listens to same smoke logs repo
+    _historyBloc = HistoryBloc(repo: smokeRepo);
+
+    setState(() => _initialized = true);
   }
 
   @override
   void dispose() {
     _authBloc.close();
+    _homeBloc.close();
+    _historyBloc.close();
     super.dispose();
   }
 
@@ -66,20 +93,29 @@ class _MyAppState extends State<MyApp> {
       );
     }
 
-    return BlocProvider.value(
-      value: _authBloc,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: _authBloc),
+        BlocProvider.value(value: _homeBloc),
+        BlocProvider.value(
+          value: _historyBloc,
+        ), // <-- Required for History Screen
+      ],
       child: Builder(
         builder: (context) {
-          // Post frame dispatch so GoRouter can subscribe to bloc stream
+          // Dispatch AppStarted ONCE after UI loads
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.read<AuthBloc>().add(AppStarted());
+            if (!_started) {
+              _started = true;
+              context.read<AuthBloc>().add(AppStarted());
+            }
           });
 
-          final router = createAppRouter(context.read<AuthBloc>());
+          final router = createAppRouter(_authBloc);
 
           return MaterialApp.router(
-            title: 'logmysmoke',
             debugShowCheckedModeBanner: false,
+            title: 'logmysmoke',
             routerConfig: router,
             theme: ThemeData(
               useMaterial3: true,

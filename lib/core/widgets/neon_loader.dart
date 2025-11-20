@@ -16,7 +16,7 @@ class NeonLoader extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: AppColors.neonGreen.withOpacity(0.6),
+            color: Colors.red.withOpacity(0.6),
             blurRadius: 25,
             spreadRadius: 3,
           ),
@@ -24,7 +24,7 @@ class NeonLoader extends StatelessWidget {
       ),
       child: CircularProgressIndicator(
         strokeWidth: 4,
-        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.neonGreen),
+        valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
         backgroundColor: const Color(0xFF1A1A1A),
       ),
     );

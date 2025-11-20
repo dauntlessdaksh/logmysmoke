@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quitsmoking/core/theme/app_colors.dart';
-import 'package:quitsmoking/core/widgets/neon_loader.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import 'package:quitsmoking/viewmodel/auth/auth_bloc.dart';
 import 'package:quitsmoking/viewmodel/auth/auth_event.dart';
 import 'package:quitsmoking/viewmodel/auth/auth_state.dart';
@@ -9,85 +9,146 @@ import 'package:quitsmoking/viewmodel/auth/auth_state.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  void _showNetworkError(BuildContext ctx) {
-    ScaffoldMessenger.of(ctx).showSnackBar(
-      const SnackBar(
-        content: Text('Network error. Please check your internet connection.'),
-      ),
-    );
-  }
+  // --- LOCAL COLOR PALETTE ---
+  final Color _bgBlack = const Color(0xFF000000);
+  final Color _surfaceDark = const Color(0xFF151517);
+  final Color _textWhite = const Color(0xFFFFFFFF);
+  final Color _textGrey = const Color(0xFF8D8D8D);
+  final Color _neonPink = const Color(0xFFFF4FA6);
+  final Color _neonBlue = const Color(0xFF47B6FF);
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (c, s) {
         if (s is AuthError) {
-          ScaffoldMessenger.of(
-            c,
-          ).showSnackBar(SnackBar(content: Text(s.message)));
+          ScaffoldMessenger.of(c).showSnackBar(
+            SnackBar(
+              content: Text(s.message),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: _bgBlack,
         body: SafeArea(
           child: Stack(
             children: [
-              Column(
-                children: [
-                  const SizedBox(height: 60),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'logmysmoke',
-                        style: TextStyle(
-                          color: AppColors.logoPrimary,
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      Text(
-                        '.',
-                        style: TextStyle(
-                          color: AppColors.logoDot,
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
+              // Background Gradient Spot (Subtle Glow)
+              Positioned(
+                top: -100,
+                left: -100,
+                child: Container(
+                  width: 300,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.redAccent.withOpacity(0.15),
+                    backgroundBlendMode: BlendMode.screen,
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Track. Improve. Quit forever.',
-                    style: TextStyle(color: AppColors.greyText),
-                  ),
-                  const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: GestureDetector(
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Spacer(),
+
+                    // Logo / Title
+                    Column(
+                      children: [
+                        // --- UPDATED: App Icon Image ---
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withOpacity(0.2),
+                                blurRadius: 30,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: Image.asset(
+                            'assets/icon.png',
+                            width: 150, // Adjusted size for image
+                            height: 150,
+                          ),
+                        ),
+                        // -------------------------------
+
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'logmy',
+                              style: GoogleFonts.poppins(
+                                color: _textWhite,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -1.0,
+                              ),
+                            ),
+                            Text(
+                              'smoke',
+                              style: GoogleFonts.poppins(
+                                color: Colors.red,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -1.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Track. Improve. Quit forever.',
+                          style: GoogleFonts.lato(
+                            color: _textGrey,
+                            fontSize: 16,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const Spacer(),
+
+                    // Google Sign In Button
+                    GestureDetector(
                       onTap: () =>
                           context.read<AuthBloc>().add(SignInRequested()),
                       child: Container(
-                        height: 56,
+                        height: 60,
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceDark,
-                          borderRadius: BorderRadius.circular(14),
+                          color: _surfaceDark,
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.neonBlue.withOpacity(0.32),
-                              blurRadius: 14,
+                              color: _neonBlue.withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: const Offset(0, 5),
                             ),
                           ],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.login, color: Colors.white),
-                            SizedBox(width: 10),
+                          children: [
+                            // Generic Login Icon
+                            const Icon(Icons.login, color: Colors.white),
+                            const SizedBox(width: 12),
                             Text(
                               'Continue with Google',
-                              style: TextStyle(
-                                color: AppColors.softWhite,
+                              style: GoogleFonts.poppins(
+                                color: _textWhite,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -95,19 +156,31 @@ class LoginScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+
+                    const SizedBox(height: 20),
+
+                    // Terms
+                    Text(
+                      'By continuing, you agree to our Terms & Privacy Policy',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.lato(
+                        color: _textGrey.withOpacity(0.5),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
 
-              // global loading overlay
+              // Loading Overlay
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (_, state) {
                   if (state is AuthLoading) {
-                    return const Positioned.fill(
-                      child: ColoredBox(
-                        color: Colors.black87,
-                        child: Center(child: NeonLoader()),
+                    return Container(
+                      color: Colors.black.withOpacity(0.8),
+                      child: Center(
+                        child: CircularProgressIndicator(color: _neonPink),
                       ),
                     );
                   }

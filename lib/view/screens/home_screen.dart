@@ -1,9 +1,10 @@
-// lib/view/screens/home_screen.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
-import 'package:quitsmoking/core/theme/app_colors.dart';
 import 'package:quitsmoking/viewmodel/auth/auth_bloc.dart';
 import 'package:quitsmoking/viewmodel/auth/auth_state.dart';
 import 'package:quitsmoking/viewmodel/home/home_bloc.dart';
@@ -12,305 +13,396 @@ import 'package:quitsmoking/viewmodel/home/home_state.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   late final HomeBloc _homeBloc;
+  Timer? _timer;
+
+  // --- LOCAL COLOR PALETTE (Dark & Neon) ---
+  final Color _bgBlack = const Color(0xFF000000);
+  final Color _surfaceDark = const Color(0xFF151517);
+  final Color _textWhite = const Color(0xFFFFFFFF);
+  final Color _textGrey = const Color(0xFF8D8D8D);
+
+  // Neon Accents
+  final Color _neonPink = const Color(0xFFFF4FA6);
+  final Color _neonGreen = const Color(0xFF3BF37C);
+  final Color _neonOrange = const Color(0xFFFF7A33);
+  final Color _neonBlue = const Color(0xFF47B6FF);
+
+  final Color _navBarColor = const Color(0xFF1E1E20);
 
   @override
   void initState() {
     super.initState();
-
-    // HomeBloc should be provided by MultiBlocProvider (MyApp)
     _homeBloc = context.read<HomeBloc>();
 
-    // Start listening using authenticated user's uid
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
       _homeBloc.add(HomeStartListening(authState.user.uid));
-    } else {
-      // Not authenticated - optional redirect:
-      // context.go('/login');
     }
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
-    // Do NOT close HomeBloc here (it's provided higher in the tree)
+    _timer?.cancel();
     super.dispose();
-  }
-
-  /// format duration for UI:
-  /// - if >= 365 days -> "Yy Mmo Dd HH:MM:SS"
-  /// - else if >= 30 days -> "Mmo Dd HH:MM:SS"
-  /// - else if >= 1 day -> "Dd HH:MM:SS"
-  /// - else -> "HH:MM:SS" or "MM:SS" depending on hours presence
-  String _format(Duration d) {
-    String two(int n) => n.toString().padLeft(2, '0');
-
-    final totalSeconds = d.inSeconds;
-    final days = totalSeconds ~/ (24 * 3600);
-    final hours = (totalSeconds % (24 * 3600)) ~/ 3600;
-    final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
-
-    if (days >= 365) {
-      final years = days ~/ 365;
-      final months = (days % 365) ~/ 30;
-      final remDays = (days % 365) % 30;
-      return "${years}y ${months}mo ${remDays}d ${two(hours)}:${two(minutes)}:${two(seconds)}";
-    } else if (days >= 30) {
-      final months = days ~/ 30;
-      final remDays = days % 30;
-      return "${months}mo ${remDays}d ${two(hours)}:${two(minutes)}:${two(seconds)}";
-    } else if (days > 0) {
-      return "${days}d ${two(hours)}:${two(minutes)}:${two(seconds)}";
-    } else if (hours > 0) {
-      return "${two(hours)}:${two(minutes)}:${two(seconds)}";
-    } else {
-      return "${two(minutes)}:${two(seconds)}";
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final dateStr = DateFormat("dd MMM yyyy").format(DateTime.now());
+
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: AppColors.background,
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(22),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Today's record",
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formattedToday(),
-                    style: const TextStyle(fontSize: 22, color: Colors.white54),
-                  ),
-                  const SizedBox(height: 20),
-
-                  _label("Since last smoking"),
-                  Text(
-                    _format(state.sinceLast),
-                    style: const TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  _label("Longest smoking cessation time"),
-                  Text(
-                    _format(state.longestCessation),
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          backgroundColor: _bgBlack,
+          body: Stack(
+            children: [
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _statCard(
-                        "Money Spent",
-                        "₹${state.moneySpent.toStringAsFixed(2)}",
+                      const SizedBox(height: 20),
+                      // Header
+                      Text(
+                        "Today's record",
+                        style: GoogleFonts.poppins(
+                          fontSize: 42, // Increased from 36
+                          fontWeight: FontWeight.w700,
+                          color: _textWhite,
+                          height: 1.1,
+                        ),
                       ),
-                      _statCard(
-                        "Money Saved (today)",
-                        "₹${state.moneySaved.toStringAsFixed(2)}",
+                      const SizedBox(height: 8),
+                      Text(
+                        dateStr,
+                        style: GoogleFonts.poppins(
+                          fontSize: 24, // Increased from 22
+                          color: _textGrey,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      _statCard("Cigs Today", "${state.todayCount}"),
+
+                      const SizedBox(height: 40),
+
+                      // ---------------------------
+                      // TIMER 1: CURRENT STREAK
+                      // ---------------------------
+                      Text(
+                        "Since the last smoking",
+                        style: GoogleFonts.lato(
+                          fontSize: 20,
+                          color: _textGrey,
+                        ), // Increased from 16
+                      ),
+                      const SizedBox(height: 15),
+                      _buildDetailedTimerRow(
+                        state.sinceLast,
+                        color: Colors.red,
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      // ---------------------------
+                      // TIMER 2: LONGEST RECORD
+                      // ---------------------------
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Longest cessation record",
+                            style: GoogleFonts.lato(
+                              fontSize: 20,
+                              color: _textGrey,
+                            ), // Increased from 16
+                          ),
+                          const Icon(
+                            Icons.fireplace_sharp,
+                            color: Colors.grey,
+                            size: 22,
+                          ), // Increased size
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                      _buildDetailedTimerRow(
+                        state.longestCessation,
+                        color: _neonGreen,
+                      ),
+
+                      const SizedBox(height: 40),
+
+                      // ---------------------------
+                      // MONEY STATS
+                      // ---------------------------
+                      Row(
+                        children: [
+                          _moneyStat(
+                            "Money Spent",
+                            state.moneySpent,
+                            valueColor: _neonOrange,
+                          ),
+                          const SizedBox(width: 40),
+                          _moneyStat(
+                            "Money Saved",
+                            state.moneySaved,
+                            valueColor: _neonBlue,
+                          ),
+                        ],
+                      ),
+
+                      const Spacer(),
+
+                      // ---------------------------
+                      // BIG COUNTER
+                      // ---------------------------
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: 120,
+                            right: 10,
+                          ), // Adjusted padding
+                          child: Text(
+                            "${state.todayCount}",
+                            style: GoogleFonts.poppins(
+                              fontSize: 180, // Increased from 140
+                              fontWeight: FontWeight.bold,
+                              color: _textWhite,
+                              height: 0.8,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 60),
                     ],
                   ),
-
-                  const Spacer(),
-
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        final authState = context.read<AuthBloc>().state;
-                        if (authState is! AuthAuthenticated) {
-                          context.go('/login');
-                          return;
-                        }
-
-                        // compute cost per cigarette from UserModel
-                        final user = authState.user;
-                        final pack = user.cigarettesPerPack ?? 1;
-                        final costPerCig = (user.packCost ?? 0.0) / pack;
-
-                        context.read<HomeBloc>().add(
-                          HomeAddSmokeLog(costPerCig),
-                        );
-                      },
-                      child: Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          color: AppColors.neonPink,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.neonPink.withOpacity(0.28),
-                              blurRadius: 18,
-                            ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.add, size: 48, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  Center(
-                    child: Text(
-                      "Tap + to log a cigarette",
-                      style: TextStyle(color: Colors.white54),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                ],
+                ),
               ),
-            ),
+
+              // ---------------------------
+              // FLOATING NAV BAR
+              // ---------------------------
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 30,
+                child: Container(
+                  height: 80, // Increased height from 75
+                  decoration: BoxDecoration(
+                    color: _navBarColor,
+                    borderRadius: BorderRadius.circular(35),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.8),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const SizedBox(width: 60), // Space for FAB
+
+                      _navIcon(
+                        Icons.calendar_month_rounded,
+                        "History",
+                        () => context.push('/history'),
+                      ),
+                      _navIcon(
+                        Icons.settings_outlined,
+                        "Settings",
+                        () => context.push('/settings'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ---------------------------
+              // PLUS BUTTON
+              // ---------------------------
+              Positioned(
+                left: 30,
+                bottom: 55,
+                child: GestureDetector(
+                  onTap: () => _handleAddLog(context),
+                  child: Container(
+                    width: 90,
+                    height: 90, // Increased from 85
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.5),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 52,
+                    ), // Increased icon size
+                  ),
+                ),
+              ),
+
+              // ---------------------------
+              // MINUS BUTTON
+              // ---------------------------
+              Positioned(
+                left: 130,
+                bottom: 50,
+                child: GestureDetector(
+                  onTap: () => _handleDeleteLog(state),
+                  child: Container(
+                    width: 55,
+                    height: 55, // Increased from 50
+                    decoration: BoxDecoration(
+                      color: _navBarColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white12, width: 1),
+                    ),
+                    child: const Icon(
+                      Icons.remove,
+                      color: Colors.white,
+                      size: 30,
+                    ), // Increased icon size
+                  ),
+                ),
+              ),
+            ],
           ),
-          bottomNavigationBar: _bottomNav(context),
         );
       },
     );
   }
 
-  Widget _label(String text) {
-    return Text(
-      text,
-      style: const TextStyle(fontSize: 18, color: Colors.white54),
+  // --- HELPER WIDGETS ---
+
+  Widget _buildDetailedTimerRow(Duration d, {required Color color}) {
+    int years = (d.inDays / 365).floor();
+    int remainingDays = d.inDays % 365;
+    int months = (remainingDays / 30).floor();
+    int days = remainingDays % 30;
+    int hours = d.inHours % 24;
+    int minutes = d.inMinutes % 60;
+    int seconds = d.inSeconds % 60;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _timeUnit(years, "Year", color),
+        _timeUnit(months, "Month", color),
+        _timeUnit(days, "Day", color),
+        _timeUnit(hours, "Hour", color),
+        _timeUnit(minutes, "Min", color),
+        _timeUnit(seconds, "Sec", color),
+      ],
     );
   }
 
-  Widget _statCard(String title, String value) {
-    return Container(
-      width: 110,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+  Widget _timeUnit(int value, String label, Color color) {
+    return Column(
+      children: [
+        Text(
+          "$value",
+          style: GoogleFonts.poppins(
+            fontSize: 29, // Increased from 22
+            fontWeight: FontWeight.bold,
+            color: color,
+            shadows: [BoxShadow(color: color.withOpacity(0.6), blurRadius: 12)],
           ),
-          const SizedBox(height: 6),
-          Text(title, style: const TextStyle(color: Colors.white60)),
-        ],
-      ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: GoogleFonts.lato(
+            fontSize: 13, // Increased from 10
+            color: _textGrey,
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _bottomNavigationBarItem(
-    BuildContext context,
-    IconData icon,
-    String label,
-    String route,
-    bool active, {
-    bool usePush = false,
-  }) {
+  Widget _moneyStat(String label, double value, {required Color valueColor}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.lato(fontSize: 18, color: _textGrey),
+        ), // Increased from 14
+        const SizedBox(height: 4),
+        Text(
+          "₹${value.toStringAsFixed(0)}",
+          style: GoogleFonts.robotoMono(
+            fontSize: 34, // Increased from 24
+            color: valueColor,
+            fontWeight: FontWeight.bold,
+            shadows: [
+              BoxShadow(color: valueColor.withOpacity(0.4), blurRadius: 8),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _navIcon(IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {
-        if (usePush) {
-          context.push(route);
-        } else {
-          context.go(route);
-        }
-      },
+      onTap: onTap,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: active ? Colors.redAccent : Colors.white54),
+          Icon(icon, color: _textGrey, size: 30), // Increased from 26
+          const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(color: active ? Colors.redAccent : Colors.white54),
-          ),
+            style: TextStyle(color: _textGrey, fontSize: 12),
+          ), // Increased from 10
         ],
       ),
     );
   }
 
-  Widget _bottomNav(BuildContext context) {
-    // Note: this is simple, adapt active state detection as per your router
-    return Container(
-      height: 70,
-      color: AppColors.surfaceDark,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _bottomNavigationBarItem(context, Icons.home, "Home", "/home", true),
-          _bottomNavigationBarItem(
-            context,
-            Icons.history,
-            "History",
-            "/history",
-            GoRouter.of(context).routerDelegate.currentConfiguration.fullPath ==
-                "/history",
-          ),
-          _bottomNavigationBarItem(
-            context,
-            Icons.settings,
-            "Settings",
-            "/settings",
-            GoRouter.of(context).routerDelegate.currentConfiguration.fullPath ==
-                "/settings",
-          ),
-        ],
-      ),
-    );
+  void _handleAddLog(BuildContext context) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+      final packCost = user.packCost ?? 0.0;
+      final packSize = user.cigarettesPerPack ?? 20;
+      final costPerCig = (packSize > 0) ? (packCost / packSize) : 0.0;
+      _homeBloc.add(HomeAddSmokeLog(costPerCig));
+    }
   }
 
-  String _formattedToday() {
-    final now = DateTime.now();
-    return "${now.day} ${_month(now.month)} ${now.year}";
-  }
-
-  String _month(int m) {
-    const names = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return names[m - 1];
+  void _handleDeleteLog(HomeState state) {
+    if (state.logs.isNotEmpty) {
+      final lastLog = state.logs.first;
+      _homeBloc.add(HomeDeleteSmokeLog(lastLog.id));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Removed last cigarette log"),
+          duration: Duration(milliseconds: 800),
+        ),
+      );
+    }
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const background = Color(0xFF0B0B0C);
+  static const background = Color(0xFF0B0B0C); // Pitch black background
   static const surfaceDark = Color(0xFF151517);
   static const surfaceDarker = Color(0xFF1E1E20);
   static const surfaceBlack = Color(0xFF0F0F10);

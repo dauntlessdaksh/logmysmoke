@@ -5,23 +5,13 @@ import 'package:quitsmoking/data/models/smoke_log_model.dart';
 class HomeState extends Equatable {
   final List<SmokeLog> logs;
 
-  /// Time since last smoke (ongoing)
   final Duration sinceLast;
-
-  /// Longest cessation observed (including ongoing)
   final Duration longestCessation;
 
-  /// Money spent TODAY (calculated from logs after midnight)
-  final double moneySpent;
-
-  /// Money saved TODAY (expectedToday - todaySpent clamped >= 0)
-  final double moneySaved;
-
-  /// Number of cigarettes smoked TODAY
-  final int todayCount;
-
-  /// Total (all-time) money spent (kept for reference)
-  final double totalSpent;
+  final double moneySpent; // today
+  final double moneySaved; // today
+  final int todayCount; // today
+  final double totalSpent; // all time
 
   final bool loading;
 

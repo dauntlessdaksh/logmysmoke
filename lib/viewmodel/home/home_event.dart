@@ -29,6 +29,13 @@ class HomeAddSmokeLog extends HomeEvent {
   List<Object?> get props => [cost];
 }
 
+class HomeDeleteSmokeLog extends HomeEvent {
+  final String logId;
+  const HomeDeleteSmokeLog(this.logId);
+  @override
+  List<Object?> get props => [logId];
+}
+
 class HomeTick extends HomeEvent {
   const HomeTick();
 }

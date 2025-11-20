@@ -22,7 +22,10 @@ class SmokeLogRepository {
   /// Stream smoke logs for a given user ordered by timestamp descending (newest first)
   Stream<List<SmokeLog>> streamLogsForUser(String uid) {
     final col = _userSmokeLogsRef(uid);
-    // If timestamp is missing for some docs, they still come; we order by timestamp desc.
+
+    // We order by timestamp descending. If timestamp is missing at creation time,
+    // SmokeLog.fromDoc will fallback to DateTime.now() and the stream will update
+    // once serverTimestamp is available (so UI may show a brief flicker).
     return col.orderBy('timestamp', descending: true).snapshots().map((snap) {
       return snap.docs.map((d) => SmokeLog.fromDoc(d)).toList();
     });
@@ -39,7 +42,6 @@ class SmokeLogRepository {
       });
       return ref.id;
     } on FirebaseException catch (e) {
-      // rethrow or wrap into your own exception
       print('Firestore addLog error: $e');
       rethrow;
     }

@@ -131,3 +131,11 @@ export const sendNightReminder = functions.pubsub
 // ============================================================
 // TEST FUNCTION (Every 1 Min)
 // ============================================================
+export const sendTestImmediate = functions.pubsub
+  .schedule("every 1 minutes")
+  .timeZone("UTC")
+  .onRun(async () => {
+    console.log("TEST NOTIFICATION RUNNING");
+    await runScheduled("motivation");
+    return null;
+  });

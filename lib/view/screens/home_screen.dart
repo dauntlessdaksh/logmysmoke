@@ -24,31 +24,51 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    // HomeBloc should be provided by the route with BlocProvider.
+    // HomeBloc should be provided by MultiBlocProvider (MyApp)
     _homeBloc = context.read<HomeBloc>();
 
-    // get auth user uid and ask HomeBloc to start listening
+    // Start listening using authenticated user's uid
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
       _homeBloc.add(HomeStartListening(authState.user.uid));
     } else {
-      // If not authenticated for some reason, you might want to redirect
-      // to login: context.go('/login');
+      // Not authenticated - optional redirect:
+      // context.go('/login');
     }
   }
 
   @override
   void dispose() {
-    // HomeBloc is provided by BlocProvider above the screen; do NOT close it here.
+    // Do NOT close HomeBloc here (it's provided higher in the tree)
     super.dispose();
   }
 
+  /// format duration for UI:
+  /// - if >= 365 days -> "Yy Mmo Dd HH:MM:SS"
+  /// - else if >= 30 days -> "Mmo Dd HH:MM:SS"
+  /// - else if >= 1 day -> "Dd HH:MM:SS"
+  /// - else -> "HH:MM:SS" or "MM:SS" depending on hours presence
   String _format(Duration d) {
     String two(int n) => n.toString().padLeft(2, '0');
-    final hours = d.inHours;
-    final minutes = d.inMinutes % 60;
-    final seconds = d.inSeconds % 60;
-    if (hours > 0) {
+
+    final totalSeconds = d.inSeconds;
+    final days = totalSeconds ~/ (24 * 3600);
+    final hours = (totalSeconds % (24 * 3600)) ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    final seconds = totalSeconds % 60;
+
+    if (days >= 365) {
+      final years = days ~/ 365;
+      final months = (days % 365) ~/ 30;
+      final remDays = (days % 365) % 30;
+      return "${years}y ${months}mo ${remDays}d ${two(hours)}:${two(minutes)}:${two(seconds)}";
+    } else if (days >= 30) {
+      final months = days ~/ 30;
+      final remDays = days % 30;
+      return "${months}mo ${remDays}d ${two(hours)}:${two(minutes)}:${two(seconds)}";
+    } else if (days > 0) {
+      return "${days}d ${two(hours)}:${two(minutes)}:${two(seconds)}";
+    } else if (hours > 0) {
       return "${two(hours)}:${two(minutes)}:${two(seconds)}";
     } else {
       return "${two(minutes)}:${two(seconds)}";
@@ -127,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () {
                         final authState = context.read<AuthBloc>().state;
                         if (authState is! AuthAuthenticated) {
-                          // Not authenticated — send to login
                           context.go('/login');
                           return;
                         }
@@ -137,7 +156,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         final pack = user.cigarettesPerPack ?? 1;
                         final costPerCig = (user.packCost ?? 0.0) / pack;
 
-                        // dispatch add log
                         context.read<HomeBloc>().add(
                           HomeAddSmokeLog(costPerCig),
                         );
@@ -162,12 +180,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 20),
+                  Center(
+                    child: Text(
+                      "Tap + to log a cigarette",
+                      style: TextStyle(color: Colors.white54),
+                    ),
+                  ),
                   const SizedBox(height: 30),
                 ],
               ),
             ),
           ),
-
           bottomNavigationBar: _bottomNav(context),
         );
       },
@@ -218,9 +242,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () {
         if (usePush) {
-          context.push(route); // ✅ Settings opens with push()
+          context.push(route);
         } else {
-          context.go(route); // default tab navigation
+          context.go(route);
         }
       },
       child: Column(
@@ -237,6 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _bottomNav(BuildContext context) {
+    // Note: this is simple, adapt active state detection as per your router
     return Container(
       height: 70,
       color: AppColors.surfaceDark,

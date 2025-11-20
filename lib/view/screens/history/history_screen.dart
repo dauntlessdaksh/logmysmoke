@@ -28,8 +28,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final Color _textGrey = const Color(0xFF8D8D8D);
 
   // Neon Accents
-  final Color _neonPink = const Color(0xFFFF4FA6);
-  final Color _neonGreen = const Color(0xFF3BF37C);
+  final Color _neonPink = Colors.redAccent;
+  final Color _neonGreen = Colors.red;
   final Color _neonOrange = const Color(0xFFFF7A33);
   final Color _neonBlue = const Color(0xFF47B6FF);
 
@@ -186,8 +186,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           child: CircularProgressIndicator(color: _neonPink),
                         )
                       : state.logsForSelectedDate.isEmpty
-                      ? _buildEmptyState()
-                      : _buildLogList(state),
+                          ? _buildEmptyState()
+                          : _buildLogList(state),
                 ),
               ),
             ],
@@ -301,7 +301,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.spa, size: 60, color: _neonGreen.withOpacity(0.5)),
+        Icon(Icons.spa, size: 60, color: Colors.red.withOpacity(0.5)),
         const SizedBox(height: 16),
         Text(
           "Smoke Free Day!",

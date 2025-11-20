@@ -77,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         "Today's record",
                         style: GoogleFonts.poppins(
-                          fontSize: 42, // Increased from 36
+                          fontSize: 42,
                           fontWeight: FontWeight.w700,
                           color: _textWhite,
                           height: 1.1,
@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         dateStr,
                         style: GoogleFonts.poppins(
-                          fontSize: 24, // Increased from 22
+                          fontSize: 24,
                           color: _textGrey,
                           fontWeight: FontWeight.w500,
                         ),
@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: GoogleFonts.lato(
                           fontSize: 20,
                           color: _textGrey,
-                        ), // Increased from 16
+                        ),
                       ),
                       const SizedBox(height: 15),
                       _buildDetailedTimerRow(
@@ -124,13 +124,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: GoogleFonts.lato(
                               fontSize: 20,
                               color: _textGrey,
-                            ), // Increased from 16
+                            ),
                           ),
                           const Icon(
                             Icons.fireplace_sharp,
                             color: Colors.grey,
                             size: 22,
-                          ), // Increased size
+                          ),
                         ],
                       ),
                       const SizedBox(height: 15),
@@ -171,11 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: const EdgeInsets.only(
                             bottom: 120,
                             right: 10,
-                          ), // Adjusted padding
+                          ),
                           child: Text(
                             "${state.todayCount}",
                             style: GoogleFonts.poppins(
-                              fontSize: 180, // Increased from 140
+                              fontSize: 180,
                               fontWeight: FontWeight.bold,
                               color: _textWhite,
                               height: 0.8,
@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 right: 20,
                 bottom: 30,
                 child: Container(
-                  height: 80, // Increased height from 75
+                  height: 80,
                   decoration: BoxDecoration(
                     color: _navBarColor,
                     borderRadius: BorderRadius.circular(35),
@@ -240,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => _handleAddLog(context),
                   child: Container(
                     width: 90,
-                    height: 90, // Increased from 85
+                    height: 90,
                     decoration: BoxDecoration(
                       color: Colors.red,
                       shape: BoxShape.circle,
@@ -257,32 +257,44 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icons.add,
                       color: Colors.white,
                       size: 52,
-                    ), // Increased icon size
+                    ),
                   ),
                 ),
               ),
 
               // ---------------------------
-              // MINUS BUTTON
+              // MINUS BUTTON (UPDATED)
               // ---------------------------
               Positioned(
-                left: 130,
-                bottom: 50,
+                left: 135, // Slightly adjusted position
+                bottom: 55, // Aligned with the bottom of the + button
                 child: GestureDetector(
                   onTap: () => _handleDeleteLog(state),
                   child: Container(
-                    width: 55,
-                    height: 55, // Increased from 50
+                    width: 65, // Increased Size
+                    height: 65,
                     decoration: BoxDecoration(
-                      color: _navBarColor,
+                      color: const Color(0xFF2A2A2C), // Lighter than nav bar
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white12, width: 1),
+                      // Red border to relate to the red button
+                      border: Border.all(
+                        color: Colors.redAccent.withOpacity(0.8),
+                        width: 2.5,
+                      ),
+                      boxShadow: [
+                        // Subtle glow
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.15),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        )
+                      ],
                     ),
                     child: const Icon(
                       Icons.remove,
                       color: Colors.white,
-                      size: 30,
-                    ), // Increased icon size
+                      size: 32,
+                    ),
                   ),
                 ),
               ),
@@ -323,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           "$value",
           style: GoogleFonts.poppins(
-            fontSize: 29, // Increased from 22
+            fontSize: 29,
             fontWeight: FontWeight.bold,
             color: color,
             shadows: [BoxShadow(color: color.withOpacity(0.6), blurRadius: 12)],
@@ -333,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           label,
           style: GoogleFonts.lato(
-            fontSize: 13, // Increased from 10
+            fontSize: 13,
             color: _textGrey,
           ),
         ),
@@ -348,12 +360,12 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           label,
           style: GoogleFonts.lato(fontSize: 18, color: _textGrey),
-        ), // Increased from 14
+        ),
         const SizedBox(height: 4),
         Text(
           "₹${value.toStringAsFixed(0)}",
           style: GoogleFonts.robotoMono(
-            fontSize: 34, // Increased from 24
+            fontSize: 34,
             color: valueColor,
             fontWeight: FontWeight.bold,
             shadows: [
@@ -371,12 +383,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: _textGrey, size: 30), // Increased from 26
+          Icon(icon, color: _textGrey, size: 30),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(color: _textGrey, fontSize: 12),
-          ), // Increased from 10
+          ),
         ],
       ),
     );

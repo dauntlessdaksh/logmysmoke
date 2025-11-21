@@ -19,8 +19,16 @@ const REMINDERS = [
   "Don't forget to log — your future self will thank you.",
 ];
 
-function pickRandom<T>(arr: T[]): T {
+function pickRandom<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/**
+ * Helper: Truncate text if user types a very long motivation.
+ */
+function truncateText(text: string, maxLength: number = 120): string {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + "...";
 }
 
 /**
@@ -33,7 +41,6 @@ async function sendNotificationToToken(
   type: string
 ) {
   try {
-    // NEW API: Uses .send() instead of .sendToDevice()
     const message: admin.messaging.Message = {
       token: token,
       notification: {
@@ -54,6 +61,9 @@ async function sendNotificationToToken(
   }
 }
 
+/**
+ * CORE LOGIC: Iterates through ALL users with notifications enabled.
+ */
 async function runScheduled(mode: "motivation" | "reminder") {
   const snapshot = await usersCol
     .where("notificationsEnabled", "==", true)
@@ -61,19 +71,25 @@ async function runScheduled(mode: "motivation" | "reminder") {
   
   const batchPromises: Promise<any>[] = [];
 
+  console.log(`Processing ${snapshot.size} users.`);
+
   snapshot.forEach((doc) => {
     const data = doc.data();
     const token = data.fcmToken as string | undefined;
+    
     if (!token) return;
 
     if (mode === "motivation") {
       const motivations = Array.isArray(data.motivations)
-        ? data.motivations
+        ? (data.motivations as string[]) 
         : [];
-      const message = motivations.length
+      
+      let message = motivations.length
         ? pickRandom(motivations)
         : "Keep going — you are doing great!";
       
+      message = truncateText(message);
+
       batchPromises.push(
         sendNotificationToToken(token, "Motivation", message, "motivation")
       );
@@ -89,7 +105,45 @@ async function runScheduled(mode: "motivation" | "reminder") {
 }
 
 // ============================================================
-// PRODUCTION SCHEDULES
+// 1. EXPLICIT CALLABLE FUNCTION (NEW)
+// ============================================================
+// Called directly from Flutter. No race conditions.
+export const triggerWelcome = functions.https.onCall(async (data, context) => {
+  // 1. Security: Ensure user is logged in
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "User must be logged in to trigger notifications."
+    );
+  }
+
+  const userId = context.auth.uid;
+  console.log(`Explicit welcome trigger for user: ${userId}`);
+
+  // 2. Fetch the user's token from Firestore
+  const userDoc = await usersCol.doc(userId).get();
+  const userData = userDoc.data();
+  const token = userData?.fcmToken;
+
+  if (!token) {
+    console.log("No token found for user.");
+    return { success: false, message: "No token found" };
+  }
+
+  // 3. Send the notification
+  await sendNotificationToToken(
+    token,
+    "Welcome to LogMySmoke",
+    "Remember why you started. We are here to help!",
+    "welcome"
+  );
+
+  return { success: true };
+});
+
+
+// ============================================================
+// 2. SCHEDULED TASKS
 // ============================================================
 
 export const sendMorningMotivation = functions.pubsub
@@ -125,17 +179,5 @@ export const sendNightReminder = functions.pubsub
   .onRun(async () => {
     console.log("sendNightReminder running");
     await runScheduled("reminder");
-    return null;
-  });
-
-// ============================================================
-// TEST FUNCTION (Every 1 Min)
-// ============================================================
-export const sendTestImmediate = functions.pubsub
-  .schedule("every 1 minutes")
-  .timeZone("UTC")
-  .onRun(async () => {
-    console.log("TEST NOTIFICATION RUNNING");
-    await runScheduled("motivation");
     return null;
   });

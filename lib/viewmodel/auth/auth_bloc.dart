@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cloud_functions/cloud_functions.dart'; // Required for callable functions
 import 'package:quitsmoking/data/models/user_model.dart';
 import 'package:quitsmoking/data/repositories/auth_repository.dart';
 import 'package:quitsmoking/data/services/notification_service.dart';
@@ -34,14 +35,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         return;
       }
 
-      // --- FIXED: Ensure token is up-to-date for returning users ---
+      // Refresh token on startup to keep it fresh
       try {
         await NotificationService.saveTokenToFirestore(user.uid);
       } catch (e) {
-        // Don't block login if token fails, just log it
         print("Non-fatal error updating token on app start: $e");
       }
-      // -----------------------------------------------------------
 
       if (user.fullyOnboarded) {
         emit(AuthAuthenticated(user));
@@ -92,7 +91,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      // Optional: Remove token on sign out to stop notifications for this device
       final user = await authRepository.getCurrentUser();
       if (user != null) {
         await NotificationService.removeTokenFromFirestore(user.uid);
@@ -131,16 +129,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         isFullyOnboarded: true,
       );
 
-      // Save onboarding data to Firestore
-      await authRepository.saveUser(updated, markOnboarded: true);
-
-      // Update notification token
+      // 1. Save Token First (Critical for Cloud Function to find it)
       if (event.notificationsEnabled) {
         await NotificationService.saveTokenToFirestore(updated.uid);
       } else {
         await NotificationService.removeTokenFromFirestore(updated.uid);
       }
 
+      // 2. Save User Data
+      await authRepository.saveUser(updated, markOnboarded: true);
+
+      // 3. EXPLICITLY TRIGGER NOTIFICATION (Fire and Forget)
+      // We use .then() and .catchError() so we do NOT await this.
+      // This ensures the UI moves to the Home Screen instantly.
+      if (event.notificationsEnabled) {
+        FirebaseFunctions.instance
+            .httpsCallable('triggerWelcome')
+            .call()
+            .then((_) => print("Welcome notification requested successfully."))
+            .catchError(
+                (e) => print("Failed to trigger welcome notification: $e"));
+      }
+
+      // 4. Navigate Immediately
       emit(AuthAuthenticated(updated));
     } catch (e) {
       emit(AuthError("Saving onboarding failed: ${e.toString()}"));

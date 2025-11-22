@@ -9,7 +9,7 @@ class SmokeLogRepository {
   static const String smokeLogsCollection = 'smoke_logs';
 
   SmokeLogRepository({FirebaseFirestore? firestore})
-    : firestore = firestore ?? FirebaseFirestore.instance;
+      : firestore = firestore ?? FirebaseFirestore.instance;
 
   // Path: users/{uid}/smoke_logs
   CollectionReference<Map<String, dynamic>> _userSmokeLogsRef(String uid) {

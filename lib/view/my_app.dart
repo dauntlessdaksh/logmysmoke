@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:quitsmoking/core/router/router.dart';
+// --- 1. IMPORT THE WRAPPER ---
+import 'package:quitsmoking/core/widgets/no_internet_wrapper.dart';
 
 import 'package:quitsmoking/data/services/firebase_auth_service.dart';
 import 'package:quitsmoking/data/repositories/auth_repository.dart';
@@ -99,7 +101,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider.value(value: _homeBloc),
         BlocProvider.value(
           value: _historyBloc,
-        ), // <-- Required for History Screen
+        ),
       ],
       child: Builder(
         builder: (context) {
@@ -121,6 +123,13 @@ class _MyAppState extends State<MyApp> {
               useMaterial3: true,
               scaffoldBackgroundColor: const Color(0xFF0B0B0C),
             ),
+            // --- 2. INTEGRATE NO INTERNET WRAPPER HERE ---
+            builder: (context, child) {
+              return NoInternetWrapper(
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
+            // --------------------------------------------
           );
         },
       ),

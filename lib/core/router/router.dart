@@ -21,9 +21,7 @@ import 'package:quitsmoking/data/repositories/smoke_log_repository.dart';
 GoRouter createAppRouter(AuthBloc authBloc) {
   return GoRouter(
     initialLocation: '/splash',
-
     refreshListenable: GoRouterRefreshStream(authBloc.stream),
-
     routes: [
       GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
@@ -64,7 +62,6 @@ GoRouter createAppRouter(AuthBloc authBloc) {
         },
       ),
     ],
-
     redirect: (context, state) {
       final st = authBloc.state;
       final loc = state.uri.toString();

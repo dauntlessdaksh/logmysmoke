@@ -29,10 +29,10 @@ class OnboardingCompleted extends AuthEvent {
 
   @override
   List<Object?> get props => [
-    motivations,
-    dailyIntake,
-    cigarettesPerPack,
-    packCost,
-    notificationsEnabled,
-  ];
+        motivations,
+        dailyIntake,
+        cigarettesPerPack,
+        packCost,
+        notificationsEnabled,
+      ];
 }

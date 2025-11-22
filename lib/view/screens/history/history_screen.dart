@@ -31,7 +31,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final Color _neonPink = Colors.redAccent;
   final Color _neonGreen = Colors.red;
   final Color _neonOrange = const Color(0xFFFF7A33);
-  final Color _neonBlue = const Color(0xFF47B6FF);
 
   @override
   void initState() {
@@ -67,137 +66,190 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ),
           ),
-          body: Column(
-            children: [
+          body: CustomScrollView(
+            slivers: [
               // 1. CALENDAR SECTION
-              Container(
-                margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-                decoration: BoxDecoration(
-                  color: _surfaceDark,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.05)),
-                ),
-                padding: const EdgeInsets.only(bottom: 12),
-                child: TableCalendar(
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2100, 12, 31),
-                  focusedDay: state.selectedDate,
-                  currentDay: DateTime.now(),
-                  selectedDayPredicate: (d) => isSameDay(state.selectedDate, d),
-                  onDaySelected: (selectedDay, focusedDay) {
-                    historyBloc.add(HistoryDateSelected(selectedDay));
-                  },
-
-                  // Styling
-                  headerStyle: HeaderStyle(
-                    formatButtonVisible: false,
-                    titleCentered: true,
-                    titleTextStyle: GoogleFonts.poppins(
-                      color: _textWhite,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    leftChevronIcon: Icon(Icons.chevron_left, color: _textGrey),
-                    rightChevronIcon: Icon(
-                      Icons.chevron_right,
-                      color: _textGrey,
-                    ),
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  decoration: BoxDecoration(
+                    color: _surfaceDark,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
                   ),
-                  calendarStyle: CalendarStyle(
-                    defaultTextStyle: GoogleFonts.lato(color: _textWhite),
-                    weekendTextStyle: GoogleFonts.lato(color: _textGrey),
-                    outsideTextStyle: GoogleFonts.lato(color: Colors.white12),
-
-                    // Today
-                    todayDecoration: BoxDecoration(
-                      color: Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: _neonPink, width: 2),
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: TableCalendar(
+                    firstDay: DateTime.utc(2020, 1, 1),
+                    lastDay: DateTime.utc(2100, 12, 31),
+                    focusedDay: state.selectedDate,
+                    currentDay: DateTime.now(),
+                    selectedDayPredicate: (d) =>
+                        isSameDay(state.selectedDate, d),
+                    onDaySelected: (selectedDay, focusedDay) {
+                      historyBloc.add(HistoryDateSelected(selectedDay));
+                    },
+                    // Styling
+                    headerStyle: HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                      titleTextStyle: GoogleFonts.poppins(
+                        color: _textWhite,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      leftChevronIcon:
+                          Icon(Icons.chevron_left, color: _textGrey),
+                      rightChevronIcon: Icon(
+                        Icons.chevron_right,
+                        color: _textGrey,
+                      ),
                     ),
-                    todayTextStyle: GoogleFonts.lato(
-                      color: _neonPink,
-                      fontWeight: FontWeight.bold,
-                    ),
-
-                    // Selected
-                    selectedDecoration: BoxDecoration(
-                      color: _neonGreen,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: _neonGreen.withOpacity(0.4),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                    selectedTextStyle: GoogleFonts.lato(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
+                    calendarStyle: CalendarStyle(
+                      defaultTextStyle: GoogleFonts.lato(color: _textWhite),
+                      weekendTextStyle: GoogleFonts.lato(color: _textGrey),
+                      outsideTextStyle: GoogleFonts.lato(color: Colors.white12),
+                      // Today
+                      todayDecoration: BoxDecoration(
+                        color: Colors.transparent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _neonPink, width: 2),
+                      ),
+                      todayTextStyle: GoogleFonts.lato(
+                        color: _neonPink,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      // Selected
+                      selectedDecoration: BoxDecoration(
+                        color: _neonGreen,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: _neonGreen.withOpacity(0.4),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      selectedTextStyle: GoogleFonts.lato(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
               ),
 
               // 2. DAILY SUMMARY (Count & Cost)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Row(
-                  children: [
-                    _buildSummaryCard(
-                      label: "Smoked",
-                      value: "${state.logsForSelectedDate.length}",
-                      color: _neonOrange,
-                      icon: Icons.smoking_rooms,
-                    ),
-                    const SizedBox(width: 16),
-                    // Note: Assuming cost calculation or just showing count for now
-                    // If you have cost in logs, sum it up here.
-                    _buildSummaryCard(
-                      label: "Status",
-                      value: state.logsForSelectedDate.isEmpty
-                          ? "Clean"
-                          : "Relapse",
-                      color: state.logsForSelectedDate.isEmpty
-                          ? _neonGreen
-                          : _neonPink,
-                      icon: state.logsForSelectedDate.isEmpty
-                          ? Icons.check_circle
-                          : Icons.warning,
-                    ),
-                  ],
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Row(
+                    children: [
+                      _buildSummaryCard(
+                        label: "Smoked",
+                        value: "${state.logsForSelectedDate.length}",
+                        color: _neonOrange,
+                        icon: Icons.smoking_rooms,
+                      ),
+                      const SizedBox(width: 16),
+                      _buildSummaryCard(
+                        label: "Status",
+                        value: state.logsForSelectedDate.isEmpty
+                            ? "Clean"
+                            : "Relapse",
+                        color: state.logsForSelectedDate.isEmpty
+                            ? _neonGreen
+                            : _neonPink,
+                        icon: state.logsForSelectedDate.isEmpty
+                            ? Icons.check_circle
+                            : Icons.warning,
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
               // 3. LOGS LIST
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: _surfaceDark,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                  ),
-                  child: state.loading
-                      ? Center(
-                          child: CircularProgressIndicator(color: _neonPink),
+              state.loading
+                  ? const SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : state.logsForSelectedDate.isEmpty
+                      ? SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _buildEmptyState(),
                         )
-                      : state.logsForSelectedDate.isEmpty
-                          ? _buildEmptyState()
-                          : _buildLogList(state),
-                ),
-              ),
+                      : SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, idx) {
+                              final log = state.logsForSelectedDate[idx];
+                              final displayIndex =
+                                  state.logsForSelectedDate.length - idx;
+
+                              return Container(
+                                margin:
+                                    const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 16),
+                                decoration: BoxDecoration(
+                                  color: _surfaceDark,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.white10),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: _neonPink.withOpacity(0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Text(
+                                            "#$displayIndex",
+                                            style: GoogleFonts.robotoMono(
+                                              color: _neonPink,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Text(
+                                          "Cigarette Logged",
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      DateFormat('HH:mm').format(log.timestamp),
+                                      style: GoogleFonts.robotoMono(
+                                          color: _textGrey, fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            childCount: state.logsForSelectedDate.length,
+                          ),
+                        ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 40)),
             ],
           ),
         );
       },
     );
   }
-
-  // --- WIDGETS ---
 
   Widget _buildSummaryCard({
     required String label,
@@ -218,14 +270,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Icon(icon, color: color, size: 24),
             const SizedBox(height: 8),
-            Text(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            // --- FIX: FittedBox prevents wrapping ---
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                style: GoogleFonts.poppins(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
+            const SizedBox(height: 2),
             Text(
               label,
               style: GoogleFonts.lato(fontSize: 14, color: _textGrey),
@@ -233,67 +290,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildLogList(HistoryState state) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: state.logsForSelectedDate.length,
-      itemBuilder: (context, idx) {
-        final log = state.logsForSelectedDate[idx];
-        // Reverse index: Newest is at top, but logically it's the Nth cig of the day
-        // If list is sorted new->old:
-        final displayIndex = state.logsForSelectedDate.length - idx;
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: _neonPink.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      "#$displayIndex",
-                      style: GoogleFonts.robotoMono(
-                        color: _neonPink,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text(
-                    "Cigarette Logged",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                DateFormat('HH:mm').format(log.timestamp),
-                style: GoogleFonts.robotoMono(color: _textGrey, fontSize: 16),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 

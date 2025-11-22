@@ -50,13 +50,13 @@ class HomeState extends Equatable {
 
   @override
   List<Object?> get props => [
-    logs,
-    sinceLast,
-    longestCessation,
-    moneySpent,
-    moneySaved,
-    todayCount,
-    totalSpent,
-    loading,
-  ];
+        logs,
+        sinceLast,
+        longestCessation,
+        moneySpent,
+        moneySaved,
+        todayCount,
+        totalSpent,
+        loading,
+      ];
 }

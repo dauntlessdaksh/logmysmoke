@@ -133,17 +133,14 @@ class UserModel {
       cigarettesPerPack: map['cigarettesPerPack'] != null
           ? (map['cigarettesPerPack'] as num).toInt()
           : null,
-      packCost: map['packCost'] != null
-          ? (map['packCost'] as num).toDouble()
-          : null,
+      packCost:
+          map['packCost'] != null ? (map['packCost'] as num).toDouble() : null,
       notificationsEnabled: map['notificationsEnabled'] as bool?,
       isFullyOnboarded: map['isFullyOnboarded'] as bool?,
-      createdAt: map['createdAt'] != null
-          ? DateTime.tryParse(map['createdAt'])
-          : null,
-      updatedAt: map['updatedAt'] != null
-          ? DateTime.tryParse(map['updatedAt'])
-          : null,
+      createdAt:
+          map['createdAt'] != null ? DateTime.tryParse(map['createdAt']) : null,
+      updatedAt:
+          map['updatedAt'] != null ? DateTime.tryParse(map['updatedAt']) : null,
     );
   }
 

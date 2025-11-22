@@ -65,7 +65,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void _next() {
-    // Validate Step 0 (Motivations)
     if (currentStep == 0) {
       if (userMotivations.length < 3) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -130,12 +129,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           );
           return;
         }
-        // close any dialog from loading
         if (Navigator.of(c, rootNavigator: true).canPop()) {
           Navigator.of(c, rootNavigator: true).pop();
         }
         if (s is AuthAuthenticated) {
-          // router redirect will handle navigation
+          // Handled by Router
         }
         if (s is AuthError) {
           ScaffoldMessenger.of(c)
@@ -144,6 +142,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
+        // CHANGED: Resize to avoid bottom overflow when keyboard is up
+        resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: Column(
             children: [
@@ -211,9 +211,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         ),
       );
 
+  // CHANGED: Ensure scrolling for every step
   Widget _stepMotivations() {
-    // 1. We wrap the whole thing in SingleChildScrollView
-    // so it can scroll when the keyboard opens.
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       physics: const BouncingScrollPhysics(),
@@ -246,8 +245,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 30),
-
-          // Input Field
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -294,9 +291,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             ),
           ),
           const SizedBox(height: 30),
-
-          // 2. REMOVED "Expanded" here.
-          // Since the parent is already scrolling, we just show the content.
           if (userMotivations.isEmpty)
             Center(
               child: Padding(
@@ -318,7 +312,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               ),
             )
           else
-            // Just a column of items now, scrolling naturally
             Column(
               children: userMotivations.map((m) {
                 return Container(
@@ -384,231 +377,250 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 );
               }).toList(),
             ),
-
-          // Add extra padding at bottom so keyboard doesn't hide the last item
           const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _stepDaily() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            const Text(
-              "How many cigarettes do you smoke daily?",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Container(
-              width: 160,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Center(
-                child: Text(
-                  '$dailyIntake',
-                  style: const TextStyle(
-                    fontSize: 44,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+  // CHANGED: Wrapped in SingleChildScrollView
+  Widget _stepDaily() => SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+              const Text(
+                "How many cigarettes do you smoke daily?",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                RoundCircle(
-                  icon: Icons.remove,
-                  onTap: () => setState(() {
-                    if (dailyIntake > 0) dailyIntake--;
-                  }),
+              const SizedBox(height: 24),
+              Container(
+                width: 160,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                const SizedBox(width: 28),
-                RoundCircle(
-                  icon: Icons.add,
-                  background: Colors.red,
-                  iconColor: Colors.white,
-                  onTap: () => setState(() => dailyIntake++),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-
-  Widget _stepPerPack() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            const Text(
-              "How many cigarettes are in a pack?",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Container(
-              width: 160,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Center(
-                child: Text(
-                  '$cigarettesPerPack',
-                  style: const TextStyle(
-                    fontSize: 44,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                RoundCircle(
-                  icon: Icons.remove,
-                  onTap: () => setState(() {
-                    if (cigarettesPerPack > 1) cigarettesPerPack--;
-                  }),
-                ),
-                const SizedBox(width: 28),
-                RoundCircle(
-                  icon: Icons.add,
-                  background: Colors.red,
-                  iconColor: Colors.white,
-                  onTap: () => setState(() => cigarettesPerPack++),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-
-  Widget _stepPackCost() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            const Text(
-              "What is the cost of a pack?",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: 220,
-              child: TextField(
-                controller: _packCostController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: AppColors.surfaceDarker,
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Text(
-                      '₹',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                onChanged: (v) =>
-                    setState(() => packCost = double.tryParse(v) ?? packCost),
-              ),
-            ),
-            const SizedBox(height: 18),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Average cost of a cigarette: ${cigarettesPerPack > 0 ? (packCost / cigarettesPerPack).toStringAsFixed(2) : 'N/A'}',
+                child: Center(
+                  child: Text(
+                    '$dailyIntake',
                     style: const TextStyle(
+                      fontSize: 44,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Estimated daily spending: ${(packCost / (cigarettesPerPack > 0 ? cigarettesPerPack : 1) * dailyIntake).toStringAsFixed(2)}',
-                    style: const TextStyle(color: Colors.grey),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  RoundCircle(
+                    icon: Icons.remove,
+                    onTap: () => setState(() {
+                      if (dailyIntake > 0) dailyIntake--;
+                    }),
+                  ),
+                  const SizedBox(width: 28),
+                  RoundCircle(
+                    icon: Icons.add,
+                    background: Colors.red,
+                    iconColor: Colors.white,
+                    onTap: () => setState(() => dailyIntake++),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 50),
+            ],
+          ),
         ),
       );
 
-  Widget _stepNotifications() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            const Text(
-              'Enable daily motivational notifications?',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+  // CHANGED: Wrapped in SingleChildScrollView
+  Widget _stepPerPack() => SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+              const Text(
+                "How many cigarettes are in a pack?",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 18),
-            const Icon(Icons.notifications_active, size: 72, color: Colors.red),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              value: notificationsEnabled,
-              onChanged: (v) => setState(() => notificationsEnabled = v),
-              title: const Text(
-                'Enable daily notifications',
-                style: TextStyle(color: Colors.white),
+              const SizedBox(height: 24),
+              Container(
+                width: 160,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Center(
+                  child: Text(
+                    '$cigarettesPerPack',
+                    style: const TextStyle(
+                      fontSize: 44,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
-              activeColor: Colors.red,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'We will send one daily motivation and a gentle reminder to log your cigarettes.',
-              style: TextStyle(color: Colors.grey),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  RoundCircle(
+                    icon: Icons.remove,
+                    onTap: () => setState(() {
+                      if (cigarettesPerPack > 1) cigarettesPerPack--;
+                    }),
+                  ),
+                  const SizedBox(width: 28),
+                  RoundCircle(
+                    icon: Icons.add,
+                    background: Colors.red,
+                    iconColor: Colors.white,
+                    onTap: () => setState(() => cigarettesPerPack++),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 50),
+            ],
+          ),
+        ),
+      );
+
+  // CHANGED: Wrapped in SingleChildScrollView
+  Widget _stepPackCost() => SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+              const Text(
+                "What is the cost of a pack?",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: 220,
+                child: TextField(
+                  controller: _packCostController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.surfaceDarker,
+                    prefixIcon: const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: Text(
+                        '₹',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onChanged: (v) =>
+                      setState(() => packCost = double.tryParse(v) ?? packCost),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Average cost of a cigarette: ${cigarettesPerPack > 0 ? (packCost / cigarettesPerPack).toStringAsFixed(2) : 'N/A'}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Estimated daily spending: ${(packCost / (cigarettesPerPack > 0 ? cigarettesPerPack : 1) * dailyIntake).toStringAsFixed(2)}',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 50),
+            ],
+          ),
+        ),
+      );
+
+  // CHANGED: Wrapped in SingleChildScrollView
+  Widget _stepNotifications() => SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+              const Text(
+                'Enable daily motivational notifications?',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 18),
+              const Icon(Icons.notifications_active,
+                  size: 72, color: Colors.red),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                value: notificationsEnabled,
+                onChanged: (v) => setState(() => notificationsEnabled = v),
+                title: const Text(
+                  'Enable daily notifications',
+                  style: TextStyle(color: Colors.white),
+                ),
+                activeColor: Colors.red,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'We will send one daily motivation and a gentle reminder to log your cigarettes.',
+                style: TextStyle(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 50),
+            ],
+          ),
         ),
       );
 

@@ -7,7 +7,7 @@ class UserRepository {
   static const users = 'users';
 
   UserRepository({FirebaseFirestore? firestore})
-    : firestore = firestore ?? FirebaseFirestore.instance;
+      : firestore = firestore ?? FirebaseFirestore.instance;
 
   Future<UserModel?> getUserById(String uid) async {
     final doc = await firestore.collection(users).doc(uid).get();

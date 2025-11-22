@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "193947097209-8mjcq5c76oc0nohs3tv4v8krigq998i0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.quitsmoking",
+            "certificate_hash": "7ab0a5f099171c710561573c9015b7e36fa04714"
+          }
+        },
+        {
+          "client_id": "193947097209-nd2dgsjjbmj8cokfdnf2oidmcgpq9n7n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.quitsmoking",
+            "certificate_hash": "3533bdac9bdeba6cad49958778aeacf7fa089083"
+          }
+        },
+        {
           "client_id": "193947097209-ksh6km180ovta34f0dg13b7ov49i1uab.apps.googleusercontent.com",
           "client_type": 3
         }

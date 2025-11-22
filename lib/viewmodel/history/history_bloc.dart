@@ -22,17 +22,15 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   ) async {
     emit(state.copyWith(loading: true));
     await _sub?.cancel();
-    _sub = repo
-        .streamLogsForUser(e.uid)
-        .listen(
-          (logs) {
-            add(HistoryLogsUpdated(logs));
-          },
-          onError: (err) {
-            print('HistoryBloc stream error: $err');
-            emit(state.copyWith(loading: false));
-          },
-        );
+    _sub = repo.streamLogsForUser(e.uid).listen(
+      (logs) {
+        add(HistoryLogsUpdated(logs));
+      },
+      onError: (err) {
+        print('HistoryBloc stream error: $err');
+        emit(state.copyWith(loading: false));
+      },
+    );
   }
 
   Future<void> _onLogsUpdated(

@@ -21,14 +21,11 @@ class _HomeScreenState extends State<HomeScreen> {
   late final HomeBloc _homeBloc;
   Timer? _timer;
 
-  // --- LOCAL COLOR PALETTE (Dark & Neon) ---
+  // --- LOCAL COLOR PALETTE ---
   final Color _bgBlack = const Color(0xFF000000);
-  final Color _surfaceDark = const Color(0xFF151517);
   final Color _textWhite = const Color(0xFFFFFFFF);
   final Color _textGrey = const Color(0xFF8D8D8D);
 
-  // Neon Accents
-  final Color _neonPink = const Color(0xFFFF4FA6);
   final Color _neonGreen = const Color(0xFF3BF37C);
   final Color _neonOrange = const Color(0xFFFF7A33);
   final Color _neonBlue = const Color(0xFF47B6FF);
@@ -66,92 +63,89 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: _bgBlack,
           body: Stack(
             children: [
+              // 1. MAIN CONTENT (NO SCROLL - FIT TO SCREEN)
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 10),
                       // Header
-                      Text(
-                        "Today's record",
-                        style: GoogleFonts.poppins(
-                          fontSize: 42,
-                          fontWeight: FontWeight.w700,
-                          color: _textWhite,
-                          height: 1.1,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          "Today's record",
+                          style: GoogleFonts.poppins(
+                            fontSize: 42,
+                            fontWeight: FontWeight.w700,
+                            color: _textWhite,
+                            height: 1.1,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
                       Text(
                         dateStr,
                         style: GoogleFonts.poppins(
-                          fontSize: 24,
+                          fontSize: 20,
                           color: _textGrey,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
 
-                      const SizedBox(height: 40),
+                      const Spacer(flex: 1), // Dynamic Space
 
-                      // ---------------------------
-                      // TIMER 1: CURRENT STREAK
-                      // ---------------------------
+                      // TIMER 1
                       Text(
                         "Since the last smoking",
                         style: GoogleFonts.lato(
-                          fontSize: 20,
+                          fontSize: 16,
                           color: _textGrey,
                         ),
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 8),
                       _buildDetailedTimerRow(
                         state.sinceLast,
                         color: Colors.red,
                       ),
 
-                      const SizedBox(height: 30),
+                      const Spacer(flex: 1), // Dynamic Space
 
-                      // ---------------------------
-                      // TIMER 2: LONGEST RECORD
-                      // ---------------------------
+                      // TIMER 2
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             "Longest cessation record",
                             style: GoogleFonts.lato(
-                              fontSize: 20,
+                              fontSize: 16,
                               color: _textGrey,
                             ),
                           ),
                           const Icon(
                             Icons.fireplace_sharp,
                             color: Colors.grey,
-                            size: 22,
+                            size: 18,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 8),
                       _buildDetailedTimerRow(
                         state.longestCessation,
                         color: _neonGreen,
                       ),
 
-                      const SizedBox(height: 40),
+                      const Spacer(flex: 1), // Dynamic Space
 
-                      // ---------------------------
                       // MONEY STATS
-                      // ---------------------------
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _moneyStat(
                             "Money Spent",
                             state.moneySpent,
                             valueColor: _neonOrange,
                           ),
-                          const SizedBox(width: 40),
                           _moneyStat(
                             "Money Saved",
                             state.moneySaved,
@@ -160,38 +154,39 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
 
-                      const Spacer(),
+                      const Spacer(flex: 1),
 
-                      // ---------------------------
-                      // BIG COUNTER
-                      // ---------------------------
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 120,
-                            right: 10,
-                          ),
-                          child: Text(
-                            "${state.todayCount}",
-                            style: GoogleFonts.poppins(
-                              fontSize: 180,
-                              fontWeight: FontWeight.bold,
-                              color: _textWhite,
-                              height: 0.8,
+                      // BIG COUNTER (Expanded to fill remaining area)
+                      Expanded(
+                        flex: 4,
+                        child: Container(
+                          alignment: Alignment.centerRight,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              "${state.todayCount}",
+                              style: GoogleFonts.poppins(
+                                fontSize: 180, // Max size, will scale down
+                                fontWeight: FontWeight.bold,
+                                color: _textWhite,
+                                height: 1.0,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 60),
+
+                      // --- FIX: RIGID BOTTOM SPACING ---
+                      // This SizedBox pushes the Column content UP.
+                      // 80 (NavBar) + 30 (Bottom Position) + 30 (Buffer) = 140
+                      const SizedBox(height: 140),
                     ],
                   ),
                 ),
               ),
 
-              // ---------------------------
-              // FLOATING NAV BAR
-              // ---------------------------
+              // 2. FLOATING NAV BAR
               Positioned(
                 left: 20,
                 right: 20,
@@ -211,28 +206,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      const SizedBox(width: 60), // Space for FAB
+                      // Reserved space for buttons (Plus + Minus)
+                      const SizedBox(width: 180),
 
-                      _navIcon(
-                        Icons.calendar_month_rounded,
-                        "History",
-                        () => context.push('/history'),
-                      ),
-                      _navIcon(
-                        Icons.settings_outlined,
-                        "Settings",
-                        () => context.push('/settings'),
+                      // Nav Items
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _navIcon(
+                              Icons.calendar_month_rounded,
+                              "History",
+                              () => context.push('/history'),
+                            ),
+                            _navIcon(
+                              Icons.settings_outlined,
+                              "Settings",
+                              () => context.push('/settings'),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // ---------------------------
-              // PLUS BUTTON
-              // ---------------------------
+              // 3. PLUS BUTTON
               Positioned(
                 left: 30,
                 bottom: 55,
@@ -262,27 +263,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // ---------------------------
-              // MINUS BUTTON (UPDATED)
-              // ---------------------------
+              // 4. MINUS BUTTON
               Positioned(
-                left: 135, // Slightly adjusted position
-                bottom: 55, // Aligned with the bottom of the + button
+                left: 135,
+                bottom: 55,
                 child: GestureDetector(
                   onTap: () => _handleDeleteLog(state),
                   child: Container(
-                    width: 65, // Increased Size
+                    width: 65,
                     height: 65,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2A2A2C), // Lighter than nav bar
+                      color: const Color(0xFF2A2A2C),
                       shape: BoxShape.circle,
-                      // Red border to relate to the red button
                       border: Border.all(
                         color: Colors.redAccent.withOpacity(0.8),
                         width: 2.5,
                       ),
                       boxShadow: [
-                        // Subtle glow
                         BoxShadow(
                           color: Colors.redAccent.withOpacity(0.15),
                           blurRadius: 10,
@@ -308,24 +305,24 @@ class _HomeScreenState extends State<HomeScreen> {
   // --- HELPER WIDGETS ---
 
   Widget _buildDetailedTimerRow(Duration d, {required Color color}) {
-    int years = (d.inDays / 365).floor();
-    int remainingDays = d.inDays % 365;
-    int months = (remainingDays / 30).floor();
-    int days = remainingDays % 30;
-    int hours = d.inHours % 24;
-    int minutes = d.inMinutes % 60;
-    int seconds = d.inSeconds % 60;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _timeUnit(years, "Year", color),
-        _timeUnit(months, "Month", color),
-        _timeUnit(days, "Day", color),
-        _timeUnit(hours, "Hour", color),
-        _timeUnit(minutes, "Min", color),
-        _timeUnit(seconds, "Sec", color),
-      ],
+    // FittedBox ensures the timer row shrinks if the screen is too narrow
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width - 48, // Full width constraint
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _timeUnit((d.inDays / 365).floor(), "Year", color),
+            _timeUnit((d.inDays % 365) ~/ 30, "Month", color),
+            _timeUnit((d.inDays % 365) % 30, "Day", color),
+            _timeUnit(d.inHours % 24, "Hour", color),
+            _timeUnit(d.inMinutes % 60, "Min", color),
+            _timeUnit(d.inSeconds % 60, "Sec", color),
+          ],
+        ),
+      ),
     );
   }
 
@@ -335,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           "$value",
           style: GoogleFonts.poppins(
-            fontSize: 29,
+            fontSize: 26,
             fontWeight: FontWeight.bold,
             color: color,
             shadows: [BoxShadow(color: color.withOpacity(0.6), blurRadius: 12)],
@@ -345,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           label,
           style: GoogleFonts.lato(
-            fontSize: 13,
+            fontSize: 12,
             color: _textGrey,
           ),
         ),
@@ -359,18 +356,22 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.lato(fontSize: 18, color: _textGrey),
+          style: GoogleFonts.lato(fontSize: 16, color: _textGrey),
         ),
         const SizedBox(height: 4),
-        Text(
-          "₹${value.toStringAsFixed(0)}",
-          style: GoogleFonts.robotoMono(
-            fontSize: 34,
-            color: valueColor,
-            fontWeight: FontWeight.bold,
-            shadows: [
-              BoxShadow(color: valueColor.withOpacity(0.4), blurRadius: 8),
-            ],
+        // FittedBox prevents money from wrapping or overflowing
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            "₹${value.toStringAsFixed(0)}",
+            style: GoogleFonts.robotoMono(
+              fontSize: 30,
+              color: valueColor,
+              fontWeight: FontWeight.bold,
+              shadows: [
+                BoxShadow(color: valueColor.withOpacity(0.4), blurRadius: 8),
+              ],
+            ),
           ),
         ),
       ],
@@ -383,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: _textGrey, size: 30),
+          Icon(icon, color: _textGrey, size: 28),
           const SizedBox(height: 4),
           Text(
             label,

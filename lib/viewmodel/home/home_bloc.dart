@@ -40,9 +40,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(state.copyWith(loading: true));
 
     await _logSub?.cancel();
-    _logSub = repo
-        .streamLogsForUser(event.uid)
-        .listen(
+    _logSub = repo.streamLogsForUser(event.uid).listen(
           (logs) => add(HomeLogsUpdated(logs)),
           onError: (_) => emit(state.copyWith(loading: false)),
         );
@@ -56,9 +54,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final now = DateTime.now();
 
     final startOfDay = DateTime(now.year, now.month, now.day);
-    final todayLogs = logs
-        .where((l) => l.timestamp.isAfter(startOfDay))
-        .toList();
+    final todayLogs =
+        logs.where((l) => l.timestamp.isAfter(startOfDay)).toList();
 
     final todaySpent = todayLogs.fold(0.0, (s, l) => s + l.cost);
     final todayCount = todayLogs.length;
@@ -66,9 +63,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final expectedToday = expectedDailyIntake * expectedCostPerCig;
     final savedToday = (expectedToday - todaySpent).clamp(0.0, double.infinity);
 
-    final sinceLast = logs.isNotEmpty
-        ? now.difference(logs.first.timestamp)
-        : Duration.zero;
+    final sinceLast =
+        logs.isNotEmpty ? now.difference(logs.first.timestamp) : Duration.zero;
 
     Duration longest = Duration.zero;
     if (logs.isNotEmpty) {

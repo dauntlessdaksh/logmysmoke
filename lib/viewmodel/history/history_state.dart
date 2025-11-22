@@ -37,9 +37,9 @@ class HistoryState extends Equatable {
 
   @override
   List<Object?> get props => [
-    selectedDate,
-    allLogs,
-    logsForSelectedDate,
-    loading,
-  ];
+        selectedDate,
+        allLogs,
+        logsForSelectedDate,
+        loading,
+      ];
 }

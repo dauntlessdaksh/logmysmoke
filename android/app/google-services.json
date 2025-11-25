@@ -7,6 +7,51 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:193947097209:android:87dabf5c4503c632541ca8",
+        "android_client_info": {
+          "package_name": "com.dakshrachit.quitsmoking"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "193947097209-qhkotvn1ar3uk977dn5itanvgu22qblh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dakshrachit.quitsmoking",
+            "certificate_hash": "cc3d2b3acdca7be3b50810af9a90a46cc612b13a"
+          }
+        },
+        {
+          "client_id": "193947097209-uphsefksqbaje7qrm8k3jgmeaojncb4l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dakshrachit.quitsmoking",
+            "certificate_hash": "3b0636e561fcd3eac0ef5f31781ff82031513df4"
+          }
+        },
+        {
+          "client_id": "193947097209-ksh6km180ovta34f0dg13b7ov49i1uab.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7uyXC1lE5ETz9FCtkfj4m6oP6Pih6A8k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "193947097209-ksh6km180ovta34f0dg13b7ov49i1uab.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:193947097209:android:ed08c29435f50d17541ca8",
         "android_client_info": {
           "package_name": "com.example.quitsmoking"
@@ -14,19 +59,19 @@
       },
       "oauth_client": [
         {
+          "client_id": "193947097209-7kp20vrb4jfnpkdclocg5v074t7oju59.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.quitsmoking",
+            "certificate_hash": "3b0636e561fcd3eac0ef5f31781ff82031513df4"
+          }
+        },
+        {
           "client_id": "193947097209-8mjcq5c76oc0nohs3tv4v8krigq998i0.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.quitsmoking",
             "certificate_hash": "7ab0a5f099171c710561573c9015b7e36fa04714"
-          }
-        },
-        {
-          "client_id": "193947097209-nd2dgsjjbmj8cokfdnf2oidmcgpq9n7n.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.quitsmoking",
-            "certificate_hash": "3533bdac9bdeba6cad49958778aeacf7fa089083"
           }
         },
         {

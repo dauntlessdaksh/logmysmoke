@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
@@ -5,8 +8,15 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// 1. Load the keystore properties (Added)
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
-    namespace = "com.example.quitsmoking"
+    namespace = "com.dakshrachit.quitsmoking"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -21,16 +31,31 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.quitsmoking"
+        applicationId = "com.dakshrachit.quitsmoking"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    // 2. Define the Signing Config (Added)
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String
+        }
+    }
+
     buildTypes {
         getByName("release") {
-            signingConfig = signingConfigs.getByName("debug")
+            // 3. Apply the Release Signing Config (Updated)
+            // Note: This will fail if key.properties is missing.
+            signingConfig = signingConfigs.getByName("release")
+            
+            // If you need to debug the release build without keys, uncomment the line below:
+            // signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
@@ -40,7 +65,6 @@ flutter {
 }
 
 dependencies {
-    // ✅ Correct Desugaring Dependency
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
@@ -52,7 +76,6 @@ dependencies {
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 }
 
-// ✅ Correct Kotlin Syntax for forcing a version (Parentheses are required!)
 configurations.all {
     resolutionStrategy {
         force("com.android.tools:desugar_jdk_libs:2.1.4")
